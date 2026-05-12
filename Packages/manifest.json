@@ -1,5 +1,8 @@
 {
   "dependencies": {
+    "com.multiset.sdk": "https://github.com/MultiSet-AI/multiset-unity-sdk.git",
+    "com.unity.ai.assistant": "2.7.0-pre.3",
+    "com.unity.ai.inference": "2.6.1",
     "com.unity.collab-proxy": "2.12.4",
     "com.unity.feature.development": "1.0.2",
     "com.unity.inputsystem": "1.19.0",
@@ -7,6 +10,7 @@
     "com.unity.timeline": "1.8.12",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualscripting": "1.9.11",
+    "com.unity.xr.arcore": "6.3.4",
     "com.unity.modules.accessibility": "1.0.0",
     "com.unity.modules.adaptiveperformance": "1.0.0",
     "com.unity.modules.ai": "1.0.0",
