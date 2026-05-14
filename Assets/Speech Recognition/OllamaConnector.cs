@@ -13,8 +13,9 @@ public class OllamaConnector : MonoBehaviour
     public string ollamaHost = "192.168.18.150";
     public int ollamaPort = 11434;
     public string modelName = "llama3.2:latest";
+    public bool useHttps = false;
 
-    private string OllamaURL => $"https://{ollamaHost}:{ollamaPort}/api/generate";
+    private string OllamaURL => $"{(useHttps ? "https" : "http")}://{ollamaHost}:{ollamaPort}/api/generate";
 
     // System prompt khusus ekstrak POI — singkat dan terarah
     private const string SYSTEM_PROMPT = @"

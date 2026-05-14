@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Android;
 using UnityEngine.UI;
+using UnityEngine.Events;
 using TMPro;
 
 public class VoiceInputHandler : MonoBehaviour
@@ -13,7 +14,17 @@ public class VoiceInputHandler : MonoBehaviour
 
     private AndroidJavaObject speechRecognizer;
     private AndroidJavaObject currentActivity;
+    private AndroidJavaObject recognizerIntent;
     private bool isListening = false;
+    private string pendingResult;
+    private string pendingError;
+
+    [Header("POI")]
+    [SerializeField] private POIManager poiManager;
+    [SerializeField] private POIDataEvent onPoiMatched;
+
+    [System.Serializable]
+    public class POIDataEvent : UnityEvent<POIData> { }
 
     void Start()
     {
@@ -45,6 +56,27 @@ public class VoiceInputHandler : MonoBehaviour
         {
             txtStatus.text = "Siap mendengarkan...";
         }
+
+        #if UNITY_ANDROID && !UNITY_EDITOR
+        SetupSpeechRecognizer();
+        #endif
+    }
+
+    void Update()
+    {
+        if (!string.IsNullOrEmpty(pendingResult))
+        {
+            string result = pendingResult;
+            pendingResult = null;
+            OnSpeechResult(result);
+        }
+
+        if (!string.IsNullOrEmpty(pendingError))
+        {
+            string error = pendingError;
+            pendingError = null;
+            OnSpeechError(error);
+        }
     }
 
     void OnVoiceButtonClicked()
@@ -58,6 +90,16 @@ public class VoiceInputHandler : MonoBehaviour
         #if UNITY_ANDROID && !UNITY_EDITOR
         try
         {
+            if (!Permission.HasUserAuthorizedPermission(Permission.Microphone))
+            {
+                Permission.RequestUserPermission(Permission.Microphone);
+                if (txtStatus != null)
+                {
+                    txtStatus.text = "Izin mikrofon dibutuhkan.";
+                }
+                return;
+            }
+
             isListening = true;
             if (txtStatus != null)
             {
@@ -65,29 +107,12 @@ public class VoiceInputHandler : MonoBehaviour
             }
             btnVoice.interactable = false;
 
-            // Ambil current Android activity
-            AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
-            currentActivity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
+            if (speechRecognizer == null || recognizerIntent == null)
+            {
+                SetupSpeechRecognizer();
+            }
 
-            // Buat intent untuk Speech Recognition
-            AndroidJavaClass intentClass = new AndroidJavaClass("android.content.Intent");
-            AndroidJavaObject intent = new AndroidJavaObject("android.content.Intent");
-
-            string ACTION_RECOGNIZE_SPEECH = intentClass.GetStatic<string>("ACTION_RECOGNIZE_SPEECH");
-            intent.Call<AndroidJavaObject>("setAction", ACTION_RECOGNIZE_SPEECH);
-
-            // Set bahasa Indonesia
-            intent.Call<AndroidJavaObject>("putExtra",
-                "android.speech.extra.LANGUAGE", "id-ID");
-            intent.Call<AndroidJavaObject>("putExtra",
-                "android.speech.extra.LANGUAGE_MODEL", "free_form");
-            intent.Call<AndroidJavaObject>("putExtra",
-                "android.speech.extra.PROMPT", "Sebutkan tujuan Anda...");
-            intent.Call<AndroidJavaObject>("putExtra",
-                "android.speech.extra.MAX_RESULTS", 1);
-
-            // Jalankan speech recognizer via activity
-            currentActivity.Call("startActivityForResult", intent, 100);
+            speechRecognizer.Call("startListening", recognizerIntent);
         }
         catch (System.Exception e)
         {
@@ -112,7 +137,6 @@ public class VoiceInputHandler : MonoBehaviour
     }
 
     // Dipanggil otomatis oleh Android saat speech selesai
-    // Tambahkan ini di AndroidManifest atau via UnityPlayerActivity override
     public void OnSpeechResult(string result)
     {
         if (string.IsNullOrEmpty(result))
@@ -165,13 +189,27 @@ public class VoiceInputHandler : MonoBehaviour
         }
         else
         {
-            if (txtStatus != null)
+            POIData matchedPoi = null;
+            if (poiManager != null)
             {
-                txtStatus.text = $"Navigasi ke: {poiName}";
+                matchedPoi = poiManager.FindBestMatch(poiName);
             }
-            // TODO: sambungkan ke NavigationController MultisetNav
-            // POI target = POIManager.CariPOI(poiName);
-            // NavigationController.instance.SetDestination(target);
+
+            if (matchedPoi != null)
+            {
+                if (txtStatus != null)
+                {
+                    txtStatus.text = $"Navigasi ke: {matchedPoi.EffectiveName}";
+                }
+                onPoiMatched?.Invoke(matchedPoi);
+            }
+            else
+            {
+                if (txtStatus != null)
+                {
+                    txtStatus.text = $"POI tidak ditemukan untuk: {poiName}";
+                }
+            }
         }
         ResetButton();
     }
@@ -180,5 +218,87 @@ public class VoiceInputHandler : MonoBehaviour
     {
         isListening = false;
         btnVoice.interactable = true;
+    }
+
+    private void SetupSpeechRecognizer()
+    {
+        AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+        currentActivity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
+
+        AndroidJavaClass recognizerClass = new AndroidJavaClass("android.speech.SpeechRecognizer");
+        speechRecognizer = recognizerClass.CallStatic<AndroidJavaObject>("createSpeechRecognizer", currentActivity);
+        speechRecognizer.Call("setRecognitionListener", new RecognitionListenerProxy(this));
+
+        AndroidJavaClass intentClass = new AndroidJavaClass("android.speech.RecognizerIntent");
+        recognizerIntent = new AndroidJavaObject("android.content.Intent");
+        recognizerIntent.Call<AndroidJavaObject>("setAction", intentClass.GetStatic<string>("ACTION_RECOGNIZE_SPEECH"));
+        recognizerIntent.Call<AndroidJavaObject>("putExtra", intentClass.GetStatic<string>("EXTRA_LANGUAGE"), "id-ID");
+        recognizerIntent.Call<AndroidJavaObject>("putExtra", intentClass.GetStatic<string>("EXTRA_LANGUAGE_MODEL"), intentClass.GetStatic<string>("LANGUAGE_MODEL_FREE_FORM"));
+        recognizerIntent.Call<AndroidJavaObject>("putExtra", intentClass.GetStatic<string>("EXTRA_PROMPT"), "Sebutkan tujuan Anda...");
+        recognizerIntent.Call<AndroidJavaObject>("putExtra", intentClass.GetStatic<string>("EXTRA_MAX_RESULTS"), 1);
+    }
+
+    private void OnDestroy()
+    {
+        if (speechRecognizer != null)
+        {
+            speechRecognizer.Call("destroy");
+            speechRecognizer = null;
+        }
+    }
+
+    private void SetPendingResult(string result)
+    {
+        pendingResult = result;
+    }
+
+    private void SetPendingError(string error)
+    {
+        pendingError = error;
+    }
+
+    private class RecognitionListenerProxy : AndroidJavaProxy
+    {
+        private readonly VoiceInputHandler handler;
+
+        public RecognitionListenerProxy(VoiceInputHandler handler) : base("android.speech.RecognitionListener")
+        {
+            this.handler = handler;
+        }
+
+        public void onResults(AndroidJavaObject results)
+        {
+            try
+            {
+                string key = "results_recognition";
+                AndroidJavaObject matches = results.Call<AndroidJavaObject>("getStringArrayList", key);
+                if (matches != null && matches.Call<int>("size") > 0)
+                {
+                    string text = matches.Call<string>("get", 0);
+                    handler.SetPendingResult(text);
+                }
+                else
+                {
+                    handler.SetPendingError("Hasil kosong");
+                }
+            }
+            catch (System.Exception e)
+            {
+                handler.SetPendingError(e.Message);
+            }
+        }
+
+        public void onError(int error)
+        {
+            handler.SetPendingError("Kode error: " + error);
+        }
+
+        public void onReadyForSpeech(AndroidJavaObject @params) { }
+        public void onBeginningOfSpeech() { }
+        public void onRmsChanged(float rmsdB) { }
+        public void onBufferReceived(byte[] buffer) { }
+        public void onEndOfSpeech() { }
+        public void onPartialResults(AndroidJavaObject partialResults) { }
+        public void onEvent(int eventType, AndroidJavaObject @params) { }
     }
 }
