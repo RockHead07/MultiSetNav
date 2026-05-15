@@ -19,6 +19,9 @@ public class VoiceInputHandler : MonoBehaviour
     private string pendingResult;
     private string pendingError;
 
+    [Header("Voice UI")]
+    [SerializeField] private VoiceUIController voiceUI;
+
     [Header("POI")]
     [SerializeField] private POIManager poiManager;
     [SerializeField] private POIDataEvent onPoiMatched;
@@ -105,6 +108,7 @@ public class VoiceInputHandler : MonoBehaviour
             {
                 txtStatus.text = "Mendengarkan...";
             }
+            if (voiceUI != null) voiceUI.SetListening(true);
             btnVoice.interactable = false;
 
             if (speechRecognizer == null || recognizerIntent == null)
@@ -120,6 +124,7 @@ public class VoiceInputHandler : MonoBehaviour
             {
                 txtStatus.text = "Error: " + e.Message;
             }
+            if (voiceUI != null) voiceUI.SetError(e.Message);
             ResetButton();
         }
         #else
@@ -131,6 +136,11 @@ public class VoiceInputHandler : MonoBehaviour
         if (txtResult != null)
         {
             txtResult.text = "saya mau ke Lab Teori 201";
+        }
+        if (voiceUI != null)
+        {
+            voiceUI.SetListening(true);
+            voiceUI.SetTranscript("saya mau ke Lab Teori 201");
         }
         StartCoroutine(SendToOllama("saya mau ke Lab Teori 201"));
         #endif
@@ -157,6 +167,11 @@ public class VoiceInputHandler : MonoBehaviour
         {
             txtResult.text = result;
         }
+        if (voiceUI != null)
+        {
+            voiceUI.SetListening(false);
+            voiceUI.SetTranscript(result);
+        }
         StartCoroutine(SendToOllama(result));
     }
 
@@ -166,6 +181,7 @@ public class VoiceInputHandler : MonoBehaviour
         {
             txtStatus.text = "Error speech: " + error;
         }
+        if (voiceUI != null) voiceUI.SetError(error);
         ResetButton();
     }
 
@@ -175,6 +191,7 @@ public class VoiceInputHandler : MonoBehaviour
         {
             txtStatus.text = "Memproses ke Ollama...";
         }
+        if (voiceUI != null) voiceUI.SetProcessing(true);
         yield return OllamaConnector.instance.ExtractPOI(spokenText, OnPOIReceived);
     }
 
@@ -210,6 +227,11 @@ public class VoiceInputHandler : MonoBehaviour
                     txtStatus.text = $"POI tidak ditemukan untuk: {poiName}";
                 }
             }
+        }
+        if (voiceUI != null)
+        {
+            voiceUI.SetProcessing(false);
+            voiceUI.SetListening(false);
         }
         ResetButton();
     }
