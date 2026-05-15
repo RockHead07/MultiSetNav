@@ -108,7 +108,11 @@ public class VoiceInputHandler : MonoBehaviour
             {
                 txtStatus.text = "Mendengarkan...";
             }
-            if (voiceUI != null) voiceUI.SetListening(true);
+            if (voiceUI != null)
+            {
+                voiceUI.ShowPanel();
+                voiceUI.SetListening(true);
+            }
             btnVoice.interactable = false;
 
             if (speechRecognizer == null || recognizerIntent == null)
@@ -139,6 +143,7 @@ public class VoiceInputHandler : MonoBehaviour
         }
         if (voiceUI != null)
         {
+            voiceUI.ShowPanel();
             voiceUI.SetListening(true);
             voiceUI.SetTranscript("saya mau ke Lab Teori 201");
         }
@@ -219,6 +224,10 @@ public class VoiceInputHandler : MonoBehaviour
                     txtStatus.text = $"Navigasi ke: {matchedPoi.EffectiveName}";
                 }
                 onPoiMatched?.Invoke(matchedPoi);
+                if (voiceUI != null)
+                {
+                    voiceUI.HidePanel();
+                }
             }
             else
             {

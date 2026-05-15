@@ -11,6 +11,8 @@ public class VoiceUIController : MonoBehaviour
     [SerializeField] private VoiceUIConfig config;
 
     [Header("UI References")]
+    [SerializeField] private GameObject voicePanel;
+    [SerializeField] private bool startHidden = false;
     [SerializeField] private TMP_Text statusText;
     [SerializeField] private TMP_Text transcriptText;
     [SerializeField] private RectTransform waveformContainer;
@@ -65,6 +67,10 @@ public class VoiceUIController : MonoBehaviour
     void Awake()
     {
         ResolveConfig();
+        if (voicePanel != null && startHidden)
+        {
+            voicePanel.SetActive(false);
+        }
         if (micButtonImage != null)
         {
             micOriginalScale = micButtonImage.rectTransform.localScale;
@@ -127,6 +133,24 @@ public class VoiceUIController : MonoBehaviour
                 StopCoroutine(transcriptHideCoroutine);
             transcriptHideCoroutine = StartCoroutine(AutoHideTranscript(_transcriptAutoHide));
         }
+    }
+
+    public void ShowPanel()
+    {
+        if (voicePanel != null)
+            voicePanel.SetActive(true);
+    }
+
+    public void HidePanel()
+    {
+        if (voicePanel != null)
+            voicePanel.SetActive(false);
+    }
+
+    public void TogglePanel()
+    {
+        if (voicePanel != null)
+            voicePanel.SetActive(!voicePanel.activeSelf);
     }
 
     // ── Config ──
