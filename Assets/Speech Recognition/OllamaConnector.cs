@@ -25,8 +25,8 @@ Jawab HANYA dengan JSON berikut, tanpa teks lain:
 {""poi"": ""nama lokasi""}
 
 Contoh:
-Input: ""saya mau ke MMB Studio""
-Output: {""poi"": ""MMB Studio""}
+Input: ""saya mau ke BAAK""
+Output: {""poi"": ""BAAK""}
 
 Input: ""di mana toilet lantai 2""  
 Output: {""poi"": ""Toilet""}

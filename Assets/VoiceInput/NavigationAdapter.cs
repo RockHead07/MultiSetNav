@@ -17,6 +17,16 @@ public class NavigationAdapter : MonoBehaviour
     [Tooltip("Jika true, gunakan SendMessage untuk memanggil method navigasi.")]
     [SerializeField] private bool useSendMessage = true;
 
+    [Header("Navigation UI Controller")]
+    [Tooltip("Komponen NavigationUIController untuk menampilkan progress slider UI.")]
+    [SerializeField] private Component navigationUIController;
+
+    [Tooltip("Nama method pada NavigationUIController yang menerima parameter POI.")]
+    [SerializeField] private string startNavigationUIMethodName = "ClickedStartNavigation";
+
+    [Tooltip("Optional: UI panel daftar destinasi. Akan disembunyikan setelah navigasi dimulai.")]
+    [SerializeField] private GameObject destinationSelectUI;
+
     [Header("Events")]
     [Tooltip("Event dipanggil saat navigasi ke POI diminta. Parameter: Transform tujuan.")]
     [SerializeField] private UnityEvent<Transform> onNavigateToTransform;
@@ -53,20 +63,28 @@ public class NavigationAdapter : MonoBehaviour
         onNavigateToPosition?.Invoke(poi.transform.position);
         onNavigateToName?.Invoke(poi.EffectiveName);
 
-        // Panggil NavigationController jika diset (tanpa dependency langsung ke tipe POI)
-        if (navigationController != null)
+        Component poiComponent = poi.GetComponent("POI");
+        if (poiComponent == null)
         {
-            Component poiComponent = poi.GetComponent("POI");
-            if (poiComponent == null)
-            {
-                Debug.LogWarning("[NavigationAdapter] Komponen POI tidak ditemukan pada target. Pastikan POI SDK terpasang di GameObject.");
-                return;
-            }
+            Debug.LogWarning("[NavigationAdapter] Komponen POI tidak ditemukan pada target. Pastikan POI SDK terpasang di GameObject.");
+            return;
+        }
 
-            if (useSendMessage)
-            {
-                navigationController.SendMessage(setPoiMethodName, poiComponent, SendMessageOptions.DontRequireReceiver);
-            }
+        // Panggil NavigationController jika diset (tanpa dependency langsung ke tipe POI)
+        if (navigationController != null && useSendMessage)
+        {
+            navigationController.SendMessage(setPoiMethodName, poiComponent, SendMessageOptions.DontRequireReceiver);
+        }
+
+        // Panggil NavigationUIController untuk menampilkan progress slider
+        if (navigationUIController != null && useSendMessage)
+        {
+            navigationUIController.SendMessage(startNavigationUIMethodName, poiComponent, SendMessageOptions.DontRequireReceiver);
+        }
+
+        if (destinationSelectUI != null && destinationSelectUI.activeSelf)
+        {
+            destinationSelectUI.SetActive(false);
         }
     }
 }

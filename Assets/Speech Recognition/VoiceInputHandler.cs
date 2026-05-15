@@ -126,13 +126,13 @@ public class VoiceInputHandler : MonoBehaviour
         // Mode editor — simulasi input teks untuk testing di PC
         if (txtStatus != null)
         {
-            txtStatus.text = "[EDITOR] Simulasi: 'saya mau ke MMB Studio'";
+            txtStatus.text = "[EDITOR] Simulasi: 'saya mau ke Lab Teori 201'";
         }
         if (txtResult != null)
         {
-            txtResult.text = "saya mau ke MMB Studio";
+            txtResult.text = "saya mau ke Lab Teori 201";
         }
-        StartCoroutine(SendToOllama("saya mau ke MMB Studio"));
+        StartCoroutine(SendToOllama("saya mau ke Lab Teori 201"));
         #endif
     }
 
@@ -224,6 +224,26 @@ public class VoiceInputHandler : MonoBehaviour
     {
         AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
         currentActivity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
+
+        // Cek apakah device mendukung speech recognition
+        AndroidJavaClass recognizerCheckClass = new AndroidJavaClass("android.speech.SpeechRecognizer");
+        bool isAvailable = recognizerCheckClass.CallStatic<bool>("isRecognitionAvailable", currentActivity);
+
+        if (!isAvailable)
+        {
+            Debug.LogError("[VoiceInputHandler] Speech recognition TIDAK tersedia di device ini.");
+            if (txtStatus != null)
+            {
+                txtStatus.text = "Speech recognition tidak didukung di device ini.";
+            }
+            if (btnVoice != null)
+            {
+                btnVoice.interactable = false;
+            }
+            return;
+        }
+
+        Debug.Log("[VoiceInputHandler] Speech recognition tersedia, melanjutkan setup...");
 
         AndroidJavaClass recognizerClass = new AndroidJavaClass("android.speech.SpeechRecognizer");
         speechRecognizer = recognizerClass.CallStatic<AndroidJavaObject>("createSpeechRecognizer", currentActivity);
