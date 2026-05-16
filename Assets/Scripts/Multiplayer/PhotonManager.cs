@@ -15,7 +15,8 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
     [Header("Scene References")]
     [SerializeField] private Transform mapSpace;
-    [SerializeField] private Transform arCamera;
+    [Tooltip("AR Camera (from XR Origin). If null, Camera.main will be used")]
+    [SerializeField] private Camera arCamera;
 
     [Header("Player Prefab")]
     [Tooltip("Prefab under Assets/Resources/")]
@@ -100,7 +101,7 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
         if (arCamera == null && Camera.main != null)
         {
-            arCamera = Camera.main.transform;
+            arCamera = Camera.main;
         }
 
         GameObject playerObj = PhotonNetwork.Instantiate(playerPrefabName, Vector3.zero, Quaternion.identity);
@@ -122,10 +123,11 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
     private string GetDefaultNickname()
     {
-        if (!string.IsNullOrEmpty(SystemInfo.deviceName))
+        string id = SystemInfo.deviceUniqueIdentifier ?? SystemInfo.deviceName ?? "XXXXXX";
+        if (id.Length >= 6)
         {
-            return SystemInfo.deviceName;
+            id = id.Substring(0, 6);
         }
-        return "User_" + Random.Range(1000, 9999);
+        return "User_" + id;
     }
 }
