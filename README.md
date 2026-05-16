@@ -3,6 +3,11 @@
 Proyek Unity ini berisi eksplorasi MultiSet SDK dengan sample scene (multiplayer dan on-device localization). Repo ini cocok sebagai basis belajar, percobaan, dan kolaborasi.
 
 ## Ringkas
+<div align="center">
+	<code><img width="50" src="https://raw.githubusercontent.com/marwin1991/profile-technology-icons/refs/heads/main/icons/c%23.png" alt="C#" title="C#"/></code>
+	<code><img width="50" src="https://raw.githubusercontent.com/marwin1991/profile-technology-icons/refs/heads/main/icons/unity.png" alt="Unity" title="Unity"/></code>
+</div>
+
 - Engine: Unity 6000.3.14f1
 - SDK utama: MultiSet Unity SDK
 - Fitur yang tampak: multiplayer sample, on-device localization, AR (ARCore)
@@ -98,7 +103,8 @@ Pilih GameObject yang memiliki komponen `NavigationAdapter`, lalu isi field beri
 | **On Navigate To Transform/Position/Name** | Wire ke handler yang sesuai | Event alternatif jika tidak pakai SendMessage |
 | **On Navigation Failed** | Wire ke UI error handler | Ditampilkan saat navigasi gagal |
 
-**Tips:** Klik kanan pada komponen NavigationAdapter di Inspector > **Validate Wiring** untuk mengecek apakah semua referensi sudah benar.
+>[!TIP]
+>**Tips:** Klik kanan pada komponen NavigationAdapter di Inspector > **Validate Wiring** untuk mengecek apakah semua referensi sudah benar.
 
 ### 6. NavMeshObstacleHelper (Obstacle Dinamis)
 
@@ -110,6 +116,7 @@ Cara menggunakan:
 3. Script akan otomatis mengkonfigurasi carving pada NavMeshObstacle
 4. Di masa depan, data dari YOLO backend akan memanggil `SetObstacleSize()` dan `SetObstacleActive()` untuk mengupdate obstacle secara real-time
 
+>[!NOTE]
 > **Catatan**: Pendekatan NavMeshObstacle carving dipilih karena lebih ringan dibanding full NavMesh rebaking, dan cukup akurat untuk bounding box kerumunan.
 
 ## Troubleshooting
