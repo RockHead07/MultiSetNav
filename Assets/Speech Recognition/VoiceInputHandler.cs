@@ -18,6 +18,8 @@ public class VoiceInputHandler : MonoBehaviour
     private bool isListening = false;
     private string pendingResult;
     private string pendingError;
+    private bool recognizerReady = false;
+    private bool pendingStartListening = false;
 
     [Header("Voice UI")]
     [SerializeField] private VoiceUIController voiceUI;
@@ -115,12 +117,20 @@ public class VoiceInputHandler : MonoBehaviour
             }
             btnVoice.interactable = false;
 
-            if (speechRecognizer == null || recognizerIntent == null)
+            if (!recognizerReady)
             {
+                pendingStartListening = true;
                 SetupSpeechRecognizer();
+                return;
             }
 
-            speechRecognizer.Call("startListening", recognizerIntent);
+            currentActivity.Call("runOnUiThread", new AndroidJavaRunnable(() =>
+            {
+                if (speechRecognizer != null && recognizerIntent != null)
+                {
+                    speechRecognizer.Call("startListening", recognizerIntent);
+                }
+            }));
         }
         catch (System.Exception e)
         {
@@ -276,25 +286,41 @@ public class VoiceInputHandler : MonoBehaviour
 
         Debug.Log("[VoiceInputHandler] Speech recognition tersedia, melanjutkan setup...");
 
-        AndroidJavaClass recognizerClass = new AndroidJavaClass("android.speech.SpeechRecognizer");
-        speechRecognizer = recognizerClass.CallStatic<AndroidJavaObject>("createSpeechRecognizer", currentActivity);
-        speechRecognizer.Call("setRecognitionListener", new RecognitionListenerProxy(this));
+        currentActivity.Call("runOnUiThread", new AndroidJavaRunnable(() =>
+        {
+            AndroidJavaClass recognizerClass = new AndroidJavaClass("android.speech.SpeechRecognizer");
+            speechRecognizer = recognizerClass.CallStatic<AndroidJavaObject>("createSpeechRecognizer", currentActivity);
+            speechRecognizer.Call("setRecognitionListener", new RecognitionListenerProxy(this));
 
-        AndroidJavaClass intentClass = new AndroidJavaClass("android.speech.RecognizerIntent");
-        recognizerIntent = new AndroidJavaObject("android.content.Intent");
-        recognizerIntent.Call<AndroidJavaObject>("setAction", intentClass.GetStatic<string>("ACTION_RECOGNIZE_SPEECH"));
-        recognizerIntent.Call<AndroidJavaObject>("putExtra", intentClass.GetStatic<string>("EXTRA_LANGUAGE"), "id-ID");
-        recognizerIntent.Call<AndroidJavaObject>("putExtra", intentClass.GetStatic<string>("EXTRA_LANGUAGE_MODEL"), intentClass.GetStatic<string>("LANGUAGE_MODEL_FREE_FORM"));
-        recognizerIntent.Call<AndroidJavaObject>("putExtra", intentClass.GetStatic<string>("EXTRA_PROMPT"), "Sebutkan tujuan Anda...");
-        recognizerIntent.Call<AndroidJavaObject>("putExtra", intentClass.GetStatic<string>("EXTRA_MAX_RESULTS"), 1);
+            AndroidJavaClass intentClass = new AndroidJavaClass("android.speech.RecognizerIntent");
+            recognizerIntent = new AndroidJavaObject("android.content.Intent");
+            recognizerIntent.Call<AndroidJavaObject>("setAction", intentClass.GetStatic<string>("ACTION_RECOGNIZE_SPEECH"));
+            recognizerIntent.Call<AndroidJavaObject>("putExtra", intentClass.GetStatic<string>("EXTRA_LANGUAGE"), "id-ID");
+            recognizerIntent.Call<AndroidJavaObject>("putExtra", intentClass.GetStatic<string>("EXTRA_LANGUAGE_MODEL"), intentClass.GetStatic<string>("LANGUAGE_MODEL_FREE_FORM"));
+            recognizerIntent.Call<AndroidJavaObject>("putExtra", intentClass.GetStatic<string>("EXTRA_PROMPT"), "Sebutkan tujuan Anda...");
+            recognizerIntent.Call<AndroidJavaObject>("putExtra", intentClass.GetStatic<string>("EXTRA_MAX_RESULTS"), 1);
+
+            recognizerReady = true;
+            if (pendingStartListening)
+            {
+                pendingStartListening = false;
+                speechRecognizer.Call("startListening", recognizerIntent);
+            }
+        }));
     }
 
     private void OnDestroy()
     {
-        if (speechRecognizer != null)
+        if (speechRecognizer != null && currentActivity != null)
         {
-            speechRecognizer.Call("destroy");
-            speechRecognizer = null;
+            currentActivity.Call("runOnUiThread", new AndroidJavaRunnable(() =>
+            {
+                if (speechRecognizer != null)
+                {
+                    speechRecognizer.Call("destroy");
+                    speechRecognizer = null;
+                }
+            }));
         }
     }
 
