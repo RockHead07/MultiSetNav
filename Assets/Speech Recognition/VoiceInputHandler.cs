@@ -261,6 +261,34 @@ public class VoiceInputHandler : MonoBehaviour
         btnVoice.interactable = true;
     }
 
+    public void CancelListening()
+    {
+        #if UNITY_ANDROID && !UNITY_EDITOR
+        if (currentActivity != null)
+        {
+            currentActivity.Call("runOnUiThread", new AndroidJavaRunnable(() =>
+            {
+                if (speechRecognizer != null)
+                {
+                    speechRecognizer.Call("cancel");
+                }
+            }));
+        }
+        #endif
+
+        if (txtStatus != null)
+        {
+            txtStatus.text = "Dibatalkan.";
+        }
+        if (voiceUI != null)
+        {
+            voiceUI.SetListening(false);
+            voiceUI.SetProcessing(false);
+            voiceUI.HidePanel();
+        }
+        ResetButton();
+    }
+
     private void SetupSpeechRecognizer()
     {
         AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
