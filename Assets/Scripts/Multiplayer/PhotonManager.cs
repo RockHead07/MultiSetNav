@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Photon.Pun;
 using Photon.Realtime;
 
@@ -32,6 +33,17 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         }
     }
 
+#if UNITY_EDITOR
+    void Update()
+    {
+        if (Keyboard.current != null && Keyboard.current.lKey.wasPressedThisFrame)
+        {
+            Debug.Log("[PhotonManager] DEBUG: Simulating localization success");
+            OnLocalizationSuccess();
+        }
+    }
+#endif
+
     public void Connect()
     {
         if (PhotonNetwork.IsConnected)
@@ -53,6 +65,12 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     public override void OnDisconnected(DisconnectCause cause)
     {
         Debug.LogWarning("[PhotonManager] Disconnected: " + cause);
+    }
+
+    public void OnLocalizationSuccess()
+    {
+        localizationReady = true;
+        TryJoinRoom();
     }
 
     public void NotifyLocalizationSucceeded(string building, string floor)
