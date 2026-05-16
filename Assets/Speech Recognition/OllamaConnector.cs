@@ -33,22 +33,35 @@ public class OllamaConnector : MonoBehaviour
 
     // System prompt khusus ekstrak POI — singkat dan terarah
     private const string SYSTEM_PROMPT = @"
-Kamu adalah sistem ekstraksi tujuan navigasi indoor.
+Kamu adalah sistem ekstraksi tujuan navigasi indoor di sebuah gedung kampus.
 Tugasmu HANYA mengekstrak nama lokasi tujuan dari kalimat pengguna.
+
+PENTING:
+- Input berasal dari speech recognition, mungkin tidak sempurna
+- Pengguna berbicara informal, santai, atau campur bahasa
+- Normalize variasi ejaan: salat/sholat/solat = tempat ibadah
+- Jika ada nama lokasi yang mirip, pilih yang paling relevan
+
+Daftar lokasi yang tersedia:
+- MMB Studio (lab multimedia)
+- Lab Teori 201, 202, 203
+- Lab Mikrotik (lab jaringan)
+- Mushola (tempat ibadah, sholat, salat)
+- BAAK (administrasi akademik)
+- Perpustakaan
+- Lab 102, Lab 103
+
 Jawab HANYA dengan JSON berikut, tanpa teks lain:
-{""poi"": ""nama lokasi""}
+{""poi"": ""nama lokasi sesuai daftar di atas""}
 
 Contoh:
-Input: ""saya mau ke BAAK""
-Output: {""poi"": ""BAAK""}
+Input: ""aku mau salat"" → Output: {""poi"": ""Mushola""}
+Input: ""perpus mana ya"" → Output: {""poi"": ""Perpustakaan""}
+Input: ""mau ngurus surat"" → Output: {""poi"": ""BAAK""}
+Input: ""lab dua kosong tiga"" → Output: {""poi"": ""Lab Teori 203""}
+Input: ""mau ke studio"" → Output: {""poi"": ""MMB Studio""}
 
-Input: ""di mana toilet lantai 2""  
-Output: {""poi"": ""Toilet""}
-
-Input: ""mau ketemu dokter mata""
-Output: {""poi"": ""Poli Mata""}
-
-Jika tidak ada tujuan yang jelas, jawab: {""poi"": """"}
+Jika tidak ada lokasi yang cocok, jawab: {""poi"": """"}
 ";
 
     void Awake()
@@ -69,7 +82,8 @@ Jika tidak ada tujuan yang jelas, jawab: {""poi"": """"}
         {
             model = modelName,
             prompt = prompt,
-            stream = false
+            stream = false,
+            think = false // Mematikan thinking mode untuk qwen3:8b
         });
 
         Debug.Log($"[Ollama] Mengirim: {spokenText}");
@@ -169,6 +183,7 @@ Jika tidak ada tujuan yang jelas, jawab: {""poi"": """"}
         public string model;
         public string prompt;
         public bool stream;
+        public bool think; // Mematikan thinking mode untuk qwen3:8b
     }
 
     [Serializable]

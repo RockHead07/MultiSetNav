@@ -172,10 +172,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95971246b91aa2d4f82127bb70f359d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OllamaConnector
-  ollamaHost: 192.168.1.106
+  ollamaHost: 192.168.18.150
   ollamaPort: 11434
-  modelName: llama3.2:latest
+  modelName: qwen3:8b
   useHttps: 0
+  onConnectionFailed:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &73784736
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1965,6 +1968,9 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   onNavigateToName:
+    m_PersistentCalls:
+      m_Calls: []
+  onNavigationFailed:
     m_PersistentCalls:
       m_Calls: []
   logNavigation: 1

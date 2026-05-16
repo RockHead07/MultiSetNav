@@ -21,6 +21,54 @@ public class POIManager : MonoBehaviour
     // dibanding match dari nama langsung (1.0x).
     private readonly Dictionary<string, bool> isSynonymKey = new Dictionary<string, bool>();
 
+    private static readonly Dictionary<string, string[]> sinonimMap = new Dictionary<string, string[]>
+    {
+        { "MMB Studio", new[] { 
+            "studio", "mmb", "multimedia", "lab multimedia", 
+            "studio multimedia", "ruang mmb", "lab mmb" 
+        }},
+        { "Lab Teori 203", new[] { 
+            "lab 203", "teori 203", "ruang 203", "dua kosong tiga",
+            "laboratorium 203", "kelas 203"
+        }},
+        { "Lab Teori 202", new[] { 
+            "lab 202", "teori 202", "ruang 202", "dua kosong dua",
+            "laboratorium 202", "kelas 202"
+        }},
+        { "Lab Teori 201", new[] { 
+            "lab 201", "teori 201", "ruang 201", "dua kosong satu",
+            "laboratorium 201", "kelas 201"
+        }},
+        { "Lab Mikrotik", new[] { 
+            "mikrotik", "lab jaringan", "jaringan", "networking",
+            "lab network", "ruang mikrotik", "cisco"
+        }},
+        { "Mushola", new[] { 
+            "masjid", "sholat", "solat", "salat", "ibadah",
+            "musholla", "sembahyang", "ngaji", "wudhu",
+            "mau salat", "mau sholat", "tempat sholat",
+            "tempat ibadah", "surau"
+        }},
+        { "BAAK", new[] { 
+            "administrasi", "tata usaha", "akademik", "surat",
+            "baak", "biro", "administrasi akademik",
+            "ngurus surat", "legalisir", "transkrip"
+        }},
+        { "Perpustakaan", new[] { 
+            "perpus", "library", "buku", "pustaka",
+            "ruang baca", "baca buku", "cari buku",
+            "pinjam buku", "referensi"
+        }},
+        { "Lab 102", new[] { 
+            "lab seratus dua", "ruang 102", "satu kosong dua",
+            "laboratorium 102", "kelas 102", "102"
+        }},
+        { "Lab 103", new[] { 
+            "lab seratus tiga", "ruang 103", "satu kosong tiga",
+            "laboratorium 103", "kelas 103", "103"
+        }},
+    };
+
     void Awake()
     {
         ScanPOIs();
@@ -58,7 +106,7 @@ public class POIManager : MonoBehaviour
                 isSynonymKey[normalizedName] = false;
             }
 
-            // Register sinonim
+            // Register sinonim dari data inspector
             if (poi.sinonim != null)
             {
                 foreach (string syn in poi.sinonim)
@@ -70,6 +118,26 @@ public class POIManager : MonoBehaviour
                         lookupDict[normalizedSyn] = poi;
                         // Tandai bahwa key ini berasal dari sinonim
                         isSynonymKey[normalizedSyn] = true;
+                    }
+                }
+            }
+
+            // Register sinonim tambahan dari sinonimMap
+            foreach (var kvp in sinonimMap)
+            {
+                // Cocokkan nama POI dengan key di sinonimMap
+                if (normalizedName == Normalize(kvp.Key))
+                {
+                    foreach (string syn in kvp.Value)
+                    {
+                        if (string.IsNullOrWhiteSpace(syn)) continue;
+                        string normalizedSyn = Normalize(syn);
+                        if (!lookupDict.ContainsKey(normalizedSyn))
+                        {
+                            lookupDict[normalizedSyn] = poi;
+                            // Tandai bahwa key ini berasal dari sinonim
+                            isSynonymKey[normalizedSyn] = true;
+                        }
                     }
                 }
             }
