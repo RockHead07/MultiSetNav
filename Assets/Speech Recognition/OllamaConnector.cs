@@ -4,6 +4,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Events; // Ditambahkan: untuk UnityEvent agar bisa kirim event ke UI
 using UnityEngine.Networking;
+using TMPro; // Ditambahkan: untuk referensi txtStatus pre-warm UI
 
 public class OllamaConnector : MonoBehaviour
 {
@@ -24,10 +25,16 @@ public class OllamaConnector : MonoBehaviour
     // Property read-only untuk cek apakah sedang memproses request
     public bool IsProcessing { get; private set; }
 
+    [Header("Pre-warm UI (Opsional)")]
+    [Tooltip("Referensi ke TextMeshPro untuk menampilkan status pre-warm. Boleh kosong.")]
+    public TMP_Text txtStatus;
+
     // Jumlah maksimal percobaan (1 awal + 1 retry = 2)
     private const int MAX_ATTEMPTS = 2;
     // Jeda sebelum retry, memberi waktu server pulih
     private const float RETRY_DELAY_SECONDS = 2f;
+    // Timeout lebih panjang untuk pre-warm karena model besar butuh waktu load ke RAM
+    private const int PREWARM_TIMEOUT = 60;
 
     private string OllamaURL => $"{(useHttps ? "https" : "http")}://{ollamaHost}:{ollamaPort}/api/generate";
 
@@ -68,6 +75,54 @@ Jika tidak ada lokasi yang cocok, jawab: {""poi"": """"}
     {
         if (instance == null) instance = this;
         else Destroy(gameObject);
+    }
+
+    void Start()
+    {
+        StartCoroutine(PreWarmModel());
+    }
+
+    /// <summary>
+    /// Kirim request dummy ke Ollama saat scene dibuka agar model sudah ter-load ke RAM.
+    /// Tanpa pre-warm, request pertama bisa lambat 10-20 detik karena model baru di-load.
+    /// Setelah pre-warm, request berikutnya langsung cepat 2-3 detik.
+    /// </summary>
+    private IEnumerator PreWarmModel()
+    {
+        Debug.Log("[Ollama] Pre-warming model...");
+        if (txtStatus != null) txtStatus.text = "Memuat sistem...";
+
+        // Buat request dummy singkat — cukup untuk trigger loading model ke RAM
+        string requestBody = JsonUtility.ToJson(new OllamaRequest
+        {
+            model = modelName,
+            prompt = "hi",
+            stream = false,
+            think = false
+        });
+
+        using (UnityWebRequest request = new UnityWebRequest(OllamaURL, "POST"))
+        {
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(requestBody);
+            request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
+            request.timeout = PREWARM_TIMEOUT;
+
+            yield return request.SendWebRequest();
+
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                Debug.Log("[Ollama] Model siap!");
+                if (txtStatus != null) txtStatus.text = "Siap!";
+            }
+            else
+            {
+                // Pre-warm gagal bukan fatal — fungsionalitas utama tetap jalan
+                Debug.LogWarning($"[Ollama] Pre-warm gagal: {request.error}. Model akan di-load saat request pertama.");
+                if (txtStatus != null) txtStatus.text = "Sistem siap (offline mode)";
+            }
+        }
     }
 
     public IEnumerator ExtractPOI(string spokenText, Action<string> onResult)

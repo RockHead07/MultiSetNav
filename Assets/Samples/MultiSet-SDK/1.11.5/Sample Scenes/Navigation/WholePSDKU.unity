@@ -174,11 +174,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::OllamaConnector
   ollamaHost: 192.168.18.150
   ollamaPort: 11434
-  modelName: qwen3:8b
+  modelName: llama3.2:latest
   useHttps: 0
   onConnectionFailed:
     m_PersistentCalls:
       m_Calls: []
+  txtStatus: {fileID: 586594366}
 --- !u!114 &73784736
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1182,12 +1183,12 @@ GameObject:
   - component: {fileID: 586594367}
   - component: {fileID: 586594366}
   m_Layer: 0
-  m_Name: Text1
+  m_Name: TextStatus
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &586594365
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2837,12 +2838,12 @@ GameObject:
   - component: {fileID: 876030379}
   - component: {fileID: 876030378}
   m_Layer: 0
-  m_Name: Text2
+  m_Name: TextResult
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &876030377
 RectTransform:
   m_ObjectHideFlags: 0
