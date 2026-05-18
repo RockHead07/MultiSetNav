@@ -4936,7 +4936,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4164677170919121941, guid: d27ef900e515242458c5368b1b0eadb3, type: 3}
       propertyPath: _confidenceThreshold
-      value: 0.35
+      value: 0.27
       objectReference: {fileID: 0}
     - target: {fileID: 4164677170919121941, guid: d27ef900e515242458c5368b1b0eadb3, type: 3}
       propertyPath: backgroundLocalization
