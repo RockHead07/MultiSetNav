@@ -23,6 +23,10 @@ public class PlayerSync : MonoBehaviourPun, IPunObservable
     [Header("Smoothing")]
     [SerializeField] private float lerpSpeed = 12f;
 
+    [Header("Floor Offset")]
+    [Tooltip("Half the capsule height — capsule center is raised by this amount so it stands on the floor")]
+    [SerializeField] private float capsuleHalfHeight = 1f;
+
     private Vector3 targetLocalPos;
     private Quaternion targetLocalRot;
 
@@ -95,8 +99,13 @@ public class PlayerSync : MonoBehaviourPun, IPunObservable
             return;
         }
 
+        // Floor-snap: zero out Y so position is at ground level
         Vector3 localPos = mapSpace.InverseTransformPoint(arCamera.transform.position);
-        Quaternion localRot = Quaternion.Inverse(mapSpace.rotation) * arCamera.transform.rotation;
+        localPos.y = 0f;
+
+        // Y-axis only rotation: ignore phone tilt (X/Z), keep horizontal facing
+        float yAngle = arCamera.transform.eulerAngles.y - mapSpace.eulerAngles.y;
+        Quaternion localRot = Quaternion.Euler(0f, yAngle, 0f);
 
         // Apply directly for immediate local feedback
         transform.localPosition = localPos;
@@ -120,14 +129,23 @@ public class PlayerSync : MonoBehaviourPun, IPunObservable
                 return;
             }
 
+            // Send floor-snapped position (Y = 0)
             Vector3 localPos = mapSpace.InverseTransformPoint(arCamera.transform.position);
-            Quaternion localRot = Quaternion.Inverse(mapSpace.rotation) * arCamera.transform.rotation;
+            localPos.y = 0f;
+
+            // Send Y-axis only rotation
+            float yAngle = arCamera.transform.eulerAngles.y - mapSpace.eulerAngles.y;
+            Quaternion localRot = Quaternion.Euler(0f, yAngle, 0f);
+
             stream.SendNext(localPos);
             stream.SendNext(localRot);
         }
         else
         {
-            targetLocalPos = (Vector3)stream.ReceiveNext();
+            Vector3 remotePos = (Vector3)stream.ReceiveNext();
+            // Offset capsule upward so it stands ON the floor, not buried in it
+            remotePos.y = capsuleHalfHeight;
+            targetLocalPos = remotePos;
             targetLocalRot = (Quaternion)stream.ReceiveNext();
         }
     }

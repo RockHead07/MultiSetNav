@@ -23,7 +23,8 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     [Tooltip("Prefab under Assets/Resources/")]
     [SerializeField] private string playerPrefabName = "PlayerPrefab";
 
-    private bool localizationReady;
+    private bool isLocalized;
+    private bool isOnMasterServer;
 
     void Start()
     {
@@ -48,29 +49,77 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     {
         if (PhotonNetwork.IsConnected)
         {
+            Debug.Log("[PhotonManager] Already connected, skipping ConnectUsingSettings.");
             return;
         }
 
+        Debug.Log("[PhotonManager] Connecting to Photon...");
         PhotonNetwork.AutomaticallySyncScene = false;
         PhotonNetwork.GameVersion = gameVersion;
         PhotonNetwork.NickName = GetDefaultNickname();
         PhotonNetwork.ConnectUsingSettings();
     }
 
+    // ── Photon Callbacks ─────────────────────────────────────────
+
     public override void OnConnectedToMaster()
     {
+        Debug.Log("[PhotonManager] OnConnectedToMaster — ready for matchmaking.");
+        isOnMasterServer = true;
         TryJoinRoom();
     }
 
     public override void OnDisconnected(DisconnectCause cause)
     {
         Debug.LogWarning("[PhotonManager] Disconnected: " + cause);
+        isOnMasterServer = false;
     }
 
+    public override void OnJoinedRoom()
+    {
+        Debug.Log("[PhotonManager] OnJoinedRoom — room: " + PhotonNetwork.CurrentRoom.Name);
+        isOnMasterServer = false; // now on GameServer
+        SpawnPlayer();
+    }
+
+    public override void OnJoinRoomFailed(short returnCode, string message)
+    {
+        Debug.LogError($"[PhotonManager] OnJoinRoomFailed ({returnCode}): {message}");
+    }
+
+    public override void OnCreateRoomFailed(short returnCode, string message)
+    {
+        Debug.LogError($"[PhotonManager] OnCreateRoomFailed ({returnCode}): {message}");
+    }
+
+    // ── Localization ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Called when AR localization succeeds (e.g. from Immersal).
+    /// Only sets the flag, then attempts to join if already on Master.
+    /// If not yet connected, starts connection — OnConnectedToMaster
+    /// will pick up the join automatically.
+    /// </summary>
     public void OnLocalizationSuccess()
     {
-        localizationReady = true;
-        TryJoinRoom();
+        Debug.Log("[PhotonManager] Localization succeeded.");
+        isLocalized = true;
+
+        if (isOnMasterServer)
+        {
+            TryJoinRoom();
+        }
+        else if (!PhotonNetwork.IsConnected)
+        {
+            Debug.Log("[PhotonManager] Not connected yet — connecting now...");
+            Connect();
+            // JoinOrCreateRoom will be called in OnConnectedToMaster
+        }
+        else
+        {
+            Debug.Log("[PhotonManager] Connected but not on MasterServer yet — waiting for OnConnectedToMaster.");
+            // JoinOrCreateRoom will be called in OnConnectedToMaster
+        }
     }
 
     public void NotifyLocalizationSucceeded(string building, string floor)
@@ -84,14 +133,27 @@ public class PhotonManager : MonoBehaviourPunCallbacks
             floorId = floor;
         }
 
-        localizationReady = true;
-        TryJoinRoom();
+        OnLocalizationSuccess();
     }
 
+    // ── Private Helpers ──────────────────────────────────────────
+
+    /// <summary>
+    /// Guards JoinOrCreateRoom behind TWO conditions:
+    ///   1. Client is on MasterServer (not GameServer, not disconnected)
+    ///   2. AR localization has completed
+    /// </summary>
     private void TryJoinRoom()
     {
-        if (!PhotonNetwork.IsConnected || !localizationReady)
+        if (!isOnMasterServer)
         {
+            Debug.Log("[PhotonManager] TryJoinRoom skipped — not on MasterServer.");
+            return;
+        }
+
+        if (!isLocalized)
+        {
+            Debug.Log("[PhotonManager] TryJoinRoom skipped — localization not ready.");
             return;
         }
 
@@ -101,12 +163,8 @@ public class PhotonManager : MonoBehaviourPunCallbacks
             MaxPlayers = (byte)Mathf.Clamp(maxPlayers, 1, 200)
         };
 
+        Debug.Log($"[PhotonManager] JoinOrCreateRoom: \"{roomName}\" (max {options.MaxPlayers})");
         PhotonNetwork.JoinOrCreateRoom(roomName, options, TypedLobby.Default);
-    }
-
-    public override void OnJoinedRoom()
-    {
-        SpawnPlayer();
     }
 
     private void SpawnPlayer()
@@ -122,6 +180,7 @@ public class PhotonManager : MonoBehaviourPunCallbacks
             arCamera = Camera.main;
         }
 
+        Debug.Log("[PhotonManager] Spawning player...");
         GameObject playerObj = PhotonNetwork.Instantiate(playerPrefabName, Vector3.zero, Quaternion.identity);
         playerObj.transform.SetParent(mapSpace, false);
         playerObj.transform.localPosition = Vector3.zero;

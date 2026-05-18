@@ -117,20 +117,12 @@ public class VoiceInputHandler : MonoBehaviour
             }
             btnVoice.interactable = false;
 
-            if (!recognizerReady)
-            {
-                pendingStartListening = true;
-                SetupSpeechRecognizer();
-                return;
-            }
+            // Destroy recognizer lama sebelum buat baru — Android SpeechRecognizer
+            // tidak bisa dipakai ulang setelah onResults/onError
+            DestroyRecognizer();
 
-            currentActivity.Call("runOnUiThread", new AndroidJavaRunnable(() =>
-            {
-                if (speechRecognizer != null && recognizerIntent != null)
-                {
-                    speechRecognizer.Call("startListening", recognizerIntent);
-                }
-            }));
+            pendingStartListening = true;
+            SetupSpeechRecognizer();
         }
         catch (System.Exception e)
         {
@@ -337,19 +329,45 @@ public class VoiceInputHandler : MonoBehaviour
         }));
     }
 
+    /// <summary>
+    /// Destroy dan dispose SpeechRecognizer lama.
+    /// Harus dipanggil sebelum membuat recognizer baru, dan di callback onResults/onError
+    /// agar memory tidak leak.
+    /// </summary>
+    private void DestroyRecognizer()
+    {
+        recognizerReady = false;
+        if (speechRecognizer != null)
+        {
+            // Destroy harus di UI thread untuk Android SpeechRecognizer
+            if (currentActivity != null)
+            {
+                AndroidJavaObject recRef = speechRecognizer;
+                currentActivity.Call("runOnUiThread", new AndroidJavaRunnable(() =>
+                {
+                    try
+                    {
+                        recRef.Call("destroy");
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogWarning("[VoiceInputHandler] DestroyRecognizer error: " + e.Message);
+                    }
+                }));
+            }
+            speechRecognizer.Dispose();
+            speechRecognizer = null;
+        }
+        if (recognizerIntent != null)
+        {
+            recognizerIntent.Dispose();
+            recognizerIntent = null;
+        }
+    }
+
     private void OnDestroy()
     {
-        if (speechRecognizer != null && currentActivity != null)
-        {
-            currentActivity.Call("runOnUiThread", new AndroidJavaRunnable(() =>
-            {
-                if (speechRecognizer != null)
-                {
-                    speechRecognizer.Call("destroy");
-                    speechRecognizer = null;
-                }
-            }));
-        }
+        DestroyRecognizer();
     }
 
     private void SetPendingResult(string result)
@@ -391,11 +409,17 @@ public class VoiceInputHandler : MonoBehaviour
             {
                 handler.SetPendingError(e.Message);
             }
+
+            // Destroy recognizer setelah hasil diterima — tidak bisa dipakai lagi
+            handler.DestroyRecognizer();
         }
 
         public void onError(int error)
         {
             handler.SetPendingError("Kode error: " + error);
+
+            // Destroy recognizer setelah error — tidak bisa dipakai lagi
+            handler.DestroyRecognizer();
         }
 
         public void onReadyForSpeech(AndroidJavaObject @params) { }

@@ -172,7 +172,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95971246b91aa2d4f82127bb70f359d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OllamaConnector
-  ollamaHost: 10.12.212.231
+  ollamaHost: 10.253.129.31
   ollamaPort: 11434
   modelName: llama3.2:latest
   useHttps: 0
@@ -4911,12 +4911,8 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4164677170919121941, guid: d27ef900e515242458c5368b1b0eadb3, type: 3}
-      propertyPath: hintRadius
-      value: 25
-      objectReference: {fileID: 0}
-    - target: {fileID: 4164677170919121941, guid: d27ef900e515242458c5368b1b0eadb3, type: 3}
       propertyPath: passGeoPose
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4164677170919121941, guid: d27ef900e515242458c5368b1b0eadb3, type: 3}
       propertyPath: autoLocalize
@@ -4936,7 +4932,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4164677170919121941, guid: d27ef900e515242458c5368b1b0eadb3, type: 3}
       propertyPath: _confidenceThreshold
-      value: 0.35
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 4164677170919121941, guid: d27ef900e515242458c5368b1b0eadb3, type: 3}
       propertyPath: backgroundLocalization
@@ -5040,7 +5036,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6881198418218506020, guid: d27ef900e515242458c5368b1b0eadb3, type: 3}
       propertyPath: meshVisualizationOption
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
