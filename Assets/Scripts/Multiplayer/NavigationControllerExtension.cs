@@ -9,6 +9,7 @@ public class NavigationControllerExtension : MonoBehaviour
     public bool isNavigatingToPlayer;
 
     private NavigationController navController;
+    private GameObject _navMeshProxy;
 
     private void Awake()
     {
@@ -22,21 +23,27 @@ public class NavigationControllerExtension : MonoBehaviour
 
     private void Update()
     {
-        if (isNavigatingToPlayer && playerTarget != null && navController != null && navController.agent != null)
+        if (isNavigatingToPlayer && playerTarget != null && 
+            navController != null && navController.agent != null)
         {
-            navController.agent.destination = playerTarget.position;
+            NavMeshHit hit;
+            Vector3 targetPos = playerTarget.position;
+            targetPos.y = 0f;
+            
+            if (NavMesh.SamplePosition(targetPos, out hit, 2f, NavMesh.AllAreas))
+            {
+                navController.agent.destination = hit.position;
+                
+                // Update proxy position to follow player
+                if (_navMeshProxy != null)
+                    _navMeshProxy.transform.position = hit.position;
+            }
         }
     }
 
     public void SetTransformForNavigation(Transform targetTransform)
     {
         if (navController == null) navController = NavigationController.instance;
-        
-        Debug.Log($"SetTransformForNavigation called. " +
-            $"navController: {navController != null}, " +
-            $"ShowPath: {ShowPath.instance != null}, " +
-            $"agent: {navController?.agent != null}, " +
-            $"isOnNavMesh: {navController?.agent?.isOnNavMesh}");
         
         if (navController != null)
             navController.StopNavigation();
@@ -46,16 +53,36 @@ public class NavigationControllerExtension : MonoBehaviour
         
         if (navController?.agent != null && ShowPath.instance != null)
         {
-            navController.agent.destination = playerTarget.position;
-            ShowPath.instance.SetPositionFrom(navController.agent.transform);
-            ShowPath.instance.SetPositionTo(playerTarget);
-            Debug.Log("ShowPath initialized for player navigation");
-        }
-        else
-        {
-            Debug.LogError($"Cannot initialize ShowPath. " +
-                $"ShowPath.instance: {ShowPath.instance != null}, " +
-                $"agent: {navController?.agent != null}");
+            // Sample nearest NavMesh position for the target
+            NavMeshHit hit;
+            Vector3 targetPos = playerTarget.position;
+            targetPos.y = 0f; // force floor level
+            
+            if (NavMesh.SamplePosition(targetPos, out hit, 2f, NavMesh.AllAreas))
+            {
+                // Use sampled NavMesh position instead of raw capsule position
+                navController.agent.destination = hit.position;
+                ShowPath.instance.SetPositionFrom(navController.agent.transform);
+                
+                // Create or reuse a proxy GameObject on NavMesh
+                if (_navMeshProxy == null)
+                {
+                    _navMeshProxy = new GameObject("NavMeshProxy");
+                }
+                _navMeshProxy.transform.position = hit.position;
+                ShowPath.instance.SetPositionTo(_navMeshProxy.transform);
+                
+                Debug.Log($"NavMesh sample successful at {hit.position}");
+            }
+            else
+            {
+                Debug.LogError($"NavMesh.SamplePosition failed for position {targetPos}. " +
+                    "Target may be outside NavMesh area.");
+                // Fallback: use raw position
+                navController.agent.destination = targetPos;
+                ShowPath.instance.SetPositionFrom(navController.agent.transform);
+                ShowPath.instance.SetPositionTo(playerTarget);
+            }
         }
     }
 
@@ -64,15 +91,16 @@ public class NavigationControllerExtension : MonoBehaviour
         isNavigatingToPlayer = false;
         playerTarget = null;
         
-        // Reset path visualization
-        if (ShowPath.instance != null)
+        if (_navMeshProxy != null)
         {
-            ShowPath.instance.ResetPath();
+            Destroy(_navMeshProxy);
+            _navMeshProxy = null;
         }
         
+        if (ShowPath.instance != null)
+            ShowPath.instance.ResetPath();
+        
         if (PathEstimationUtils.instance != null)
-        {
             PathEstimationUtils.instance.ResetEstimation();
-        }
     }
 }
