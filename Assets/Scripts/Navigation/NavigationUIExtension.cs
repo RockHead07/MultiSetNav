@@ -6,7 +6,11 @@ public class NavigationUIExtension : MonoBehaviour
 
     private void Awake()
     {
-        if (instance == null) instance = this;
+        if (instance == null) 
+        {
+            instance = this;
+            if (transform.parent == null) DontDestroyOnLoad(gameObject);
+        }
     }
 
     public void StartPlayerNavigation(string playerName)

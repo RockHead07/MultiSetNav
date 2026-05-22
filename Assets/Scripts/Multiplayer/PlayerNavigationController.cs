@@ -41,8 +41,19 @@ public class PlayerNavigationController : MonoBehaviourPunCallbacks
         
         if (NavigationUIExtension.instance == null)
         {
-            Debug.LogError("NavigationUIExtension instance is null!");
-            return;
+            // Try to find it in scene before giving up
+            NavigationUIExtension found = FindObjectOfType<NavigationUIExtension>();
+            if (found != null)
+            {
+                Debug.LogWarning("NavigationUIExtension instance was null, " +
+                    "found via FindObjectOfType");
+            }
+            else
+            {
+                Debug.LogError("NavigationUIExtension instance is null! " +
+                    "Cannot find it in scene either.");
+                return;
+            }
         }
 
         currentTargetPlayerName = playerName;

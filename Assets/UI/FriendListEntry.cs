@@ -16,19 +16,26 @@ public class FriendListEntry : MonoBehaviour
     {
         targetPlayer = player;
         arCamera = cam;
-
-        pName = player.photonView.Owner != null ? player.photonView.Owner.NickName : "Player";
-        if (playerNameText != null)
-        {
+        pName = player.photonView.Owner != null ? 
+            player.photonView.Owner.NickName : "Player";
+        
+        if (playerNameText != null) 
             playerNameText.text = pName;
-        }
-
+        else 
+            Debug.LogWarning("FriendListEntry: playerNameText is null!");
+            
+        if (distanceText == null)
+            Debug.LogWarning("FriendListEntry: distanceText is null!");
+            
         if (navigateButton != null)
         {
             navigateButton.onClick.RemoveAllListeners();
             navigateButton.onClick.AddListener(OnNavigateClicked);
         }
-
+        else
+            Debug.LogWarning("FriendListEntry: navigateButton is null! " +
+                "Check prefab Inspector fields are assigned.");
+            
         UpdateDistance();
     }
 
