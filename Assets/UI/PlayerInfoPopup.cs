@@ -13,7 +13,7 @@ public class PlayerInfoPopup : MonoBehaviour
     public Button navigateButton;
     public Button closeButton;
 
-    private PlayerSync currentPlayer;
+    private PlayerSync currentPlayerSync;
     private Camera arCamera;
 
     private void Awake()
@@ -27,7 +27,7 @@ public class PlayerInfoPopup : MonoBehaviour
 
         if (closeButton != null)
         {
-            closeButton.onClick.AddListener(Hide);
+            closeButton.onClick.AddListener(OnCloseClicked);
         }
 
         if (popupPanel != null)
@@ -43,7 +43,7 @@ public class PlayerInfoPopup : MonoBehaviour
 
     private void Update()
     {
-        if (popupPanel != null && popupPanel.activeSelf && currentPlayer != null)
+        if (popupPanel != null && popupPanel.activeSelf && currentPlayerSync != null)
         {
             UpdateDistanceText();
         }
@@ -51,7 +51,7 @@ public class PlayerInfoPopup : MonoBehaviour
 
     public void Show(PlayerSync player)
     {
-        currentPlayer = player;
+        currentPlayerSync = player;
         
         if (playerNameText != null)
         {
@@ -72,15 +72,32 @@ public class PlayerInfoPopup : MonoBehaviour
         {
             popupPanel.SetActive(false);
         }
-        currentPlayer = null;
+        currentPlayerSync = null;
+    }
+
+    public void OnNavigateClicked()
+    {
+        if (currentPlayerSync == null) return;
+        
+        PlayerNavigationController.instance.NavigateToPlayer(
+            currentPlayerSync.transform,
+            currentPlayerSync.photonView.Owner.NickName
+        );
+        
+        Hide();
+    }
+
+    public void OnCloseClicked()
+    {
+        Hide();
     }
 
     private void UpdateDistanceText()
     {
-        if (distanceText == null || arCamera == null || currentPlayer == null) return;
+        if (distanceText == null || arCamera == null || currentPlayerSync == null) return;
 
         Vector3 myPos = arCamera.transform.position;
-        Vector3 targetPos = currentPlayer.transform.position;
+        Vector3 targetPos = currentPlayerSync.transform.position;
         
         // Use horizontal distance
         myPos.y = 0;
@@ -88,17 +105,5 @@ public class PlayerInfoPopup : MonoBehaviour
 
         float distance = Vector3.Distance(myPos, targetPos);
         distanceText.text = $"Jarak: {distance:F1} m";
-    }
-
-    private void OnNavigateClicked()
-    {
-        if (currentPlayer != null && PlayerNavigationController.instance != null)
-        {
-            string pName = currentPlayer.photonView.Owner != null ? currentPlayer.photonView.Owner.NickName : "Player";
-            PlayerNavigationController.instance.NavigateToPlayer(currentPlayer.transform, pName);
-            
-            // Auto-hide when navigation starts
-            Hide();
-        }
     }
 }

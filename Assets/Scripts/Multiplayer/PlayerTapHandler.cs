@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 
 public class PlayerTapHandler : MonoBehaviour
@@ -14,49 +15,44 @@ public class PlayerTapHandler : MonoBehaviour
     {
         if (arCamera == null) return;
 
-        // Check for touches or clicks
-        if (Input.GetMouseButtonDown(0) || (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began))
+        Vector2 inputPosition = Vector2.zero;
+        bool inputDetected = false;
+
+        // Android touch
+        if (Touchscreen.current != null && 
+            Touchscreen.current.primaryTouch.press.wasPressedThisFrame)
         {
-            Vector3 inputPosition = Input.mousePosition;
-            if (Input.touchCount > 0)
-            {
-                inputPosition = Input.GetTouch(0).position;
-            }
+            inputPosition = Touchscreen.current.primaryTouch.position.ReadValue();
+            inputDetected = true;
+        }
+        // Editor mouse click
+        else if (Mouse.current != null && 
+                 Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            inputPosition = Mouse.current.position.ReadValue();
+            inputDetected = true;
+        }
 
-            // Prevent raycasting if tapping on UI
-            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
-            {
-                // Note: For touches, IsPointerOverGameObject might need the touch fingerId
-                if (Input.touchCount > 0 && EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
-                {
-                    return;
-                }
-                else if (Input.touchCount == 0)
-                {
-                    return;
-                }
-            }
+        if (!inputDetected) return;
 
-            Ray ray = arCamera.ScreenPointToRay(inputPosition);
-            if (Physics.Raycast(ray, out RaycastHit hit))
+        // Prevent raycast if tapping on UI
+        if (EventSystem.current != null && 
+            EventSystem.current.IsPointerOverGameObject()) return;
+
+        Ray ray = arCamera.ScreenPointToRay(inputPosition);
+        if (Physics.Raycast(ray, out RaycastHit hit))
+        {
+            PlayerSync playerSync = hit.collider.GetComponentInParent<PlayerSync>();
+            
+            if (playerSync != null && !playerSync.photonView.IsMine)
             {
-                // Check if hit object or its parent has PlayerSync
-                PlayerSync playerSync = hit.collider.GetComponentInParent<PlayerSync>();
-                
-                if (playerSync != null)
+                if (PlayerInfoPopup.instance != null)
                 {
-                    // Ensure it's not the local player
-                    if (!playerSync.photonView.IsMine)
-                    {
-                        if (PlayerInfoPopup.instance != null)
-                        {
-                            PlayerInfoPopup.instance.Show(playerSync);
-                        }
-                        else
-                        {
-                            Debug.LogWarning("PlayerInfoPopup instance is missing!");
-                        }
-                    }
+                    PlayerInfoPopup.instance.Show(playerSync);
+                }
+                else
+                {
+                    Debug.LogWarning("PlayerInfoPopup instance is missing!");
                 }
             }
         }

@@ -31,14 +31,26 @@ public class PlayerNavigationController : MonoBehaviourPunCallbacks
 
     public void NavigateToPlayer(Transform playerCapsuleTransform, string playerName)
     {
+        if (NavigationControllerExtension.instance == null)
+        {
+            Debug.LogError("NavigationControllerExtension instance is null! " +
+                "Make sure NavigationControllerExtension script is attached " +
+                "to a GameObject in the scene.");
+            return;
+        }
+        
+        if (NavigationUIExtension.instance == null)
+        {
+            Debug.LogError("NavigationUIExtension instance is null!");
+            return;
+        }
+
         currentTargetPlayerName = playerName;
         playerTarget = playerCapsuleTransform;
         isNavigatingToPlayer = true;
-
-        if (NavigationControllerExtension.instance != null)
-        {
-            NavigationControllerExtension.instance.SetTransformForNavigation(playerCapsuleTransform);
-        }
+        
+        NavigationControllerExtension.instance.SetTransformForNavigation(playerCapsuleTransform);
+        NavigationUIExtension.instance.StartPlayerNavigation(playerName);
     }
 
     public void StopNavigation()
@@ -51,6 +63,8 @@ public class PlayerNavigationController : MonoBehaviourPunCallbacks
         {
             NavigationControllerExtension.instance.StopPlayerNavigation();
         }
+
+        NavigationUIExtension.instance.StopPlayerNavigation();
     }
 
     public float GetDistanceToTarget()

@@ -78,6 +78,7 @@ MonoBehaviour:
   nameTagRoot: {fileID: 2221779637468801463}
   nameTagText: {fileID: 5911861203460978913}
   lerpSpeed: 12
+  capsuleHalfHeight: 1
 --- !u!1 &2221779637468801463
 GameObject:
   m_ObjectHideFlags: 0
