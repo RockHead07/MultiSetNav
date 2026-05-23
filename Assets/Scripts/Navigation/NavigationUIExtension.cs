@@ -1,8 +1,12 @@
 using UnityEngine;
+using UnityEngine.UI;
+
 public class NavigationUIExtension : MonoBehaviour
 {
     public static NavigationUIExtension instance;
     private NavigationUIController _cachedNavUI;
+    private float _startingDistance = 0f;
+    private bool _estimationStarted = false;
     
     private void Awake()
     {
@@ -18,7 +22,34 @@ public class NavigationUIExtension : MonoBehaviour
         // Cache once at start instead of every frame
         _cachedNavUI = FindObjectOfType<NavigationUIController>();
         if (_cachedNavUI == null)
+        {
             Debug.LogWarning("NavigationUIExtension: NavigationUIController not found!");
+            return;
+        }
+        
+        // Hook into stop button to intercept during player navigation
+        if (_cachedNavUI.stopButton != null)
+        {
+            // Use true to ensure it finds the button even if stopButton is currently inactive
+            Button stopBtn = _cachedNavUI.stopButton.GetComponentInChildren<Button>(true);
+            if (stopBtn != null)
+            {
+                stopBtn.onClick.AddListener(OnStopButtonClicked);
+            }
+        }
+    }
+
+    private void OnStopButtonClicked()
+    {
+        // If navigating to player, stop player navigation
+        if (NavigationControllerExtension.instance != null && 
+            NavigationControllerExtension.instance.isNavigatingToPlayer)
+        {
+            if (PlayerNavigationController.instance != null)
+            {
+                PlayerNavigationController.instance.StopNavigation();
+            }
+        }
     }
     
     private void Update()
@@ -26,11 +57,37 @@ public class NavigationUIExtension : MonoBehaviour
         if (NavigationControllerExtension.instance != null && 
             NavigationControllerExtension.instance.isNavigatingToPlayer)
         {
-            if (_cachedNavUI != null && _cachedNavUI.remainingDistance != null)
+            if (_cachedNavUI != null && PlayerNavigationController.instance != null)
             {
-                int distance = PathEstimationUtils.instance != null ? 
-                    PathEstimationUtils.instance.getRemainingDistanceMeters() : 0;
-                _cachedNavUI.remainingDistance.text = distance + " m remaining";
+                float distance = PlayerNavigationController.instance.GetDistanceToTarget();
+                
+                // Update distance text
+                if (_cachedNavUI.remainingDistance != null)
+                    _cachedNavUI.remainingDistance.text = 
+                        distance.ToString("F0") + " m remaining";
+                
+                // Update progress slider manually
+                if (_cachedNavUI.navigationProgressSlider != null)
+                {
+                    Slider slider = _cachedNavUI.navigationProgressSlider
+                        .GetComponentInChildren<Slider>();
+                        
+                    if (slider != null)
+                    {
+                        // Initialize starting distance
+                        if (!_estimationStarted || distance > _startingDistance)
+                        {
+                            _startingDistance = distance;
+                            _estimationStarted = true;
+                        }
+                        
+                        if (_startingDistance > 0)
+                        {
+                            float progress = (_startingDistance - distance) / _startingDistance;
+                            slider.value = Mathf.Clamp01(progress + 0.03f);
+                        }
+                    }
+                }
             }
         }
     }
@@ -53,6 +110,9 @@ public class NavigationUIExtension : MonoBehaviour
     
     public void StopPlayerNavigation()
     {
+        _estimationStarted = false;
+        _startingDistance = 0f;
+        
         if (_cachedNavUI == null)
             _cachedNavUI = FindObjectOfType<NavigationUIController>();
             

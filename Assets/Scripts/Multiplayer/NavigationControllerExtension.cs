@@ -70,7 +70,39 @@ public class NavigationControllerExtension : MonoBehaviour
                     _navMeshProxy = new GameObject("NavMeshProxy");
                 }
                 _navMeshProxy.transform.position = hit.position;
+                
+                // Reset PathEstimationUtils to prevent null reference
+                if (PathEstimationUtils.instance != null)
+                {
+                    PathEstimationUtils.instance.ResetEstimation();
+                }
+                
                 ShowPath.instance.SetPositionTo(_navMeshProxy.transform);
+                
+                // After NavMesh sample successful, set dummy destination to prevent crash
+                POI[] allPOIs = FindObjectsOfType<POI>();
+                if (allPOIs.Length > 0 && PathEstimationUtils.instance != null)
+                {
+                    // Use reflection to set private destination field
+                    var field = typeof(PathEstimationUtils)
+                        .GetField("destination", 
+                            System.Reflection.BindingFlags.NonPublic | 
+                            System.Reflection.BindingFlags.Instance);
+                    if (field != null)
+                    {
+                        field.SetValue(PathEstimationUtils.instance, allPOIs[0]);
+                        
+                        // Also set destinationColliderRadius to prevent radius crash
+                        var radiusField = typeof(PathEstimationUtils)
+                            .GetField("destinationColliderRadius",
+                                System.Reflection.BindingFlags.NonPublic | 
+                                System.Reflection.BindingFlags.Instance);
+                        if (radiusField != null)
+                        {
+                            radiusField.SetValue(PathEstimationUtils.instance, 0f);
+                        }
+                    }
+                }
                 
                 Debug.Log($"NavMesh sample successful at {hit.position}");
             }

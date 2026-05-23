@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using Photon.Pun;
+using MultiSet;
 
 public class PlayerNavigationController : MonoBehaviourPunCallbacks
 {
@@ -108,6 +109,13 @@ public class PlayerNavigationController : MonoBehaviourPunCallbacks
                 // We have arrived
                 OnArrived?.Invoke();
                 StopNavigation();
+                
+                // Show arrival toast like MultiSet does for POI
+                if (ToastManager.Instance != null)
+                {
+                    ToastManager.Instance.ShowAlert(
+                        "Kamu sudah sampai di lokasi " + currentTargetPlayerName + "!");
+                }
             }
         }
     }
