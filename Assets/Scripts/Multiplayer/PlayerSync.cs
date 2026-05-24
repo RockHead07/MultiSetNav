@@ -37,6 +37,14 @@ public class PlayerSync : MonoBehaviourPun, IPunObservable
             GameObject mapSpaceGo = GameObject.Find("Map Space");
             mapSpace = mapSpaceGo != null ? mapSpaceGo.transform : null;
         }
+        
+        // CRITICAL: Parent to MapSpace if not already
+        // This ensures remote players instantiated by Photon are placed in the correct coordinate space
+        if (mapSpace != null && transform.parent != mapSpace)
+        {
+            transform.SetParent(mapSpace, false);
+            Debug.Log($"[PlayerSync] Parented to MapSpace: {photonView.IsMine}");
+        }
 
         if (arCamera == null)
         {

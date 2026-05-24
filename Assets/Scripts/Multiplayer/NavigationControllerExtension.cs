@@ -10,6 +10,8 @@ public class NavigationControllerExtension : MonoBehaviour
 
     private NavigationController navController;
     private GameObject _navMeshProxy;
+    private Vector3 _lastProxyPosition;
+    private float _pathRecalcThreshold = 0.3f;
 
     private void Awake()
     {
@@ -36,7 +38,19 @@ public class NavigationControllerExtension : MonoBehaviour
                 
                 // Update proxy position to follow player
                 if (_navMeshProxy != null)
+                {
                     _navMeshProxy.transform.position = hit.position;
+                    
+                    if (Vector3.Distance(_navMeshProxy.transform.position, _lastProxyPosition) > _pathRecalcThreshold)
+                    {
+                        _lastProxyPosition = _navMeshProxy.transform.position;
+                        // Force ShowPath recalculation by re-setting destination
+                        if (ShowPath.instance != null)
+                        {
+                            ShowPath.instance.SetPositionTo(_navMeshProxy.transform);
+                        }
+                    }
+                }
             }
         }
     }

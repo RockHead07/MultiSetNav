@@ -88,6 +88,17 @@ public class NavigationUIExtension : MonoBehaviour
                         }
                     }
                 }
+                
+                // Update _PathLength material property to prevent stretched arrows
+                var showPath = ShowPath.instance;
+                if (showPath != null)
+                {
+                    var lineRenderer = showPath.GetComponent<LineRenderer>();
+                    if (lineRenderer != null && lineRenderer.material != null)
+                    {
+                        lineRenderer.material.SetFloat("_PathLength", distance);
+                    }
+                }
             }
         }
     }
