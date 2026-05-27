@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: NavPathMaterial
-  m_Shader: {fileID: 4800000, guid: 8b25da5dcdd3b4e04b5ef9478fc90e03, type: 3}
+  m_Shader: {fileID: 4800000, guid: 2416895fcb8fa439aa13dda858881661, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -48,7 +48,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 04ed0a1ff0111459c9dd7d0fc2a54969, type: 3}
+        m_Texture: {fileID: 2800000, guid: 50ea9d98e0f604a20a86a66278ff085e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -66,7 +66,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _ArrowSize: 1
-    - _ArrowSpacing: 0.5
+    - _ArrowSpacing: 0.45
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
@@ -79,7 +79,7 @@ Material:
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _PathLength: 2
+    - _PathLength: 3
     - _ScrollSpeed: -1.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
@@ -88,7 +88,7 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 0.078431375, g: 0.27058825, b: 0.47843137, a: 1}
+    - _Color: {r: 0.4823529, g: 0.17254898, b: 0.7490196, a: 0.9411765}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Tint: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
