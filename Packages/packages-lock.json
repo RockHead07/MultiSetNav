@@ -1,44 +1,5 @@
 {
   "dependencies": {
-    "com.meta.xr.mrutilitykit": {
-      "version": "83.0.1",
-      "depth": 1,
-      "source": "registry",
-      "dependencies": {
-        "com.meta.xr.sdk.core": "83.0.1",
-        "com.unity.textmeshpro": "3.0.6",
-        "com.unity.ai.navigation": "1.1.4",
-        "com.unity.nuget.newtonsoft-json": "3.0.2"
-      },
-      "url": "https://packages.unity.com"
-    },
-    "com.meta.xr.sdk.core": {
-      "version": "83.0.1",
-      "depth": 2,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://packages.unity.com"
-    },
-    "com.meta.xr.sdk.interaction": {
-      "version": "83.0.1",
-      "depth": 2,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.ugui": "1.0.0",
-        "com.unity.textmeshpro": "3.0.6"
-      },
-      "url": "https://packages.unity.com"
-    },
-    "com.meta.xr.sdk.interaction.ovr": {
-      "version": "83.0.1",
-      "depth": 1,
-      "source": "registry",
-      "dependencies": {
-        "com.meta.xr.sdk.core": "83.0.1",
-        "com.meta.xr.sdk.interaction": "83.0.1"
-      },
-      "url": "https://packages.unity.com"
-    },
     "com.multiset.sdk": {
       "version": "https://github.com/MultiSet-AI/multiset-unity-sdk.git",
       "depth": 0,
@@ -54,23 +15,6 @@
         "com.unity.multiplayer.center": "1.0.1"
       },
       "hash": "fa4d1e44bb3e22f42b8cb8064dbad7f44c0bc99d"
-    },
-    "com.multiset.sdk.quest": {
-      "version": "https://github.com/MultiSet-AI/multiset-quest-sdk.git",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {
-        "com.meta.xr.sdk.core": "81.0.0",
-        "com.meta.xr.mrutilitykit": "83.0.1",
-        "com.meta.xr.sdk.interaction.ovr": "83.0.1",
-        "com.unity.cloud.draco": "5.4.3",
-        "com.unity.cloud.gltfast": "6.15.1",
-        "com.unity.xr.management": "4.5.4",
-        "com.unity.xr.openxr": "1.16.1",
-        "com.unity.ai.navigation": "2.0.12",
-        "com.unity.inputsystem": "1.19.0"
-      },
-      "hash": "158df9fb2e853b7d329c98451416ade439904d64"
     },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
@@ -315,14 +259,6 @@
         "com.unity.settings-manager": "2.0.0"
       },
       "url": "https://packages.unity.com"
-    },
-    "com.unity.textmeshpro": {
-      "version": "5.0.0",
-      "depth": 2,
-      "source": "builtin",
-      "dependencies": {
-        "com.unity.ugui": "2.0.0"
-      }
     },
     "com.unity.timeline": {
       "version": "1.8.12",
