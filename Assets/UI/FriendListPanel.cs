@@ -32,7 +32,16 @@ public class FriendListPanel : MonoBehaviour
 
     private void Start()
     {
-        arCamera = Camera.main;
+        arCamera = ResolveArCamera();
+    }
+
+    // Camera.main only works if the AR camera is tagged "MainCamera".
+    // In AR setups it often isn't, so fall back to any active camera in the scene.
+    private Camera ResolveArCamera()
+    {
+        Camera cam = Camera.main;
+        if (cam == null) cam = Object.FindObjectOfType<Camera>();
+        return cam;
     }
 
     public void TogglePanel()
@@ -62,12 +71,18 @@ public class FriendListPanel : MonoBehaviour
     {
         if (contentContainer == null || friendEntryPrefab == null) return;
 
+        // Re-acquire the camera in case it wasn't ready at Start (AR camera spawns late)
+        if (arCamera == null) arCamera = ResolveArCamera();
+
         PlayerSync[] allPlayers = Object.FindObjectsByType<PlayerSync>(FindObjectsSortMode.None);
         List<PlayerSync> remotePlayers = new List<PlayerSync>();
 
         foreach (var p in allPlayers)
         {
-            if (p.photonView != null && !p.photonView.IsMine)
+            // Only list real networked remote players:
+            //  - not me (IsMine)
+            //  - has a valid Photon owner (excludes stray/scene player objects with null owner)
+            if (p.photonView != null && !p.photonView.IsMine && p.photonView.Owner != null)
             {
                 remotePlayers.Add(p);
             }

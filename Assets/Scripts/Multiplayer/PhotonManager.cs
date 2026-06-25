@@ -2,6 +2,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Photon.Pun;
 using Photon.Realtime;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class PhotonManager : MonoBehaviourPunCallbacks
 {
@@ -28,20 +31,34 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
     void Start()
     {
+        // Ensure this is registered as Photon callback target
+        PhotonNetwork.AddCallbackTarget(this);
+
         if (autoConnect)
         {
             Connect();
         }
+
+#if UNITY_EDITOR
+        InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+        debugLocalize = new InputAction("DebugLocalize", binding: "<Keyboard>/l");
+        debugLocalize.performed += _ =>
+        {
+            Debug.Log("[PhotonManager] DEBUG: L key detected — simulating localization.");
+            OnLocalizationSuccess();
+        };
+        debugLocalize.Enable();
+        Debug.Log("[PhotonManager] DEBUG: Press L anytime to simulate localization success.");
+#endif
     }
 
 #if UNITY_EDITOR
-    void Update()
+    private InputAction debugLocalize;
+
+    void OnDestroy()
     {
-        if (Keyboard.current != null && Keyboard.current.lKey.wasPressedThisFrame)
-        {
-            Debug.Log("[PhotonManager] DEBUG: Simulating localization success");
-            OnLocalizationSuccess();
-        }
+        debugLocalize?.Disable();
+        debugLocalize?.Dispose();
     }
 #endif
 
@@ -145,15 +162,20 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     /// </summary>
     private void TryJoinRoom()
     {
-        if (!isOnMasterServer)
-        {
-            Debug.Log("[PhotonManager] TryJoinRoom skipped — not on MasterServer.");
-            return;
-        }
-
         if (!isLocalized)
         {
             Debug.Log("[PhotonManager] TryJoinRoom skipped — localization not ready.");
+            return;
+        }
+
+        // Use actual Photon state instead of manual flag
+        var state = PhotonNetwork.NetworkClientState;
+        bool readyToJoin = state == Photon.Realtime.ClientState.ConnectedToMasterServer ||
+                           state == Photon.Realtime.ClientState.JoinedLobby;
+
+        if (!readyToJoin)
+        {
+            Debug.Log($"[PhotonManager] TryJoinRoom skipped — Photon state: {state}. Will retry in OnConnectedToMaster.");
             return;
         }
 

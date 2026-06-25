@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "com.coplaydev.coplay": "https://github.com/CoplayDev/coplay-unity-plugin.git",
+    "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main",
     "com.multiset.sdk": "https://github.com/MultiSet-AI/multiset-unity-sdk.git",
     "com.unity.ai.assistant": "2.7.0-pre.3",
     "com.unity.ai.inference": "2.6.1",
@@ -12,7 +14,7 @@
     "com.unity.visualscripting": "1.9.11",
     "com.unity.xr.arcore": "6.3.4",
     "com.unity.xr.openxr": "1.17.0",
-    "com.veriorpies.parrelsync": "https://github.com/VeriorPies/ParrelSync.git?path=/ParrelSync",
+    "com.veriorpies.parrelsync": "file:com.veriorpies.parrelsync",
     "com.unity.modules.accessibility": "1.0.0",
     "com.unity.modules.adaptiveperformance": "1.0.0",
     "com.unity.modules.ai": "1.0.0",
