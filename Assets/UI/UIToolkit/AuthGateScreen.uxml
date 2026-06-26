@@ -2,16 +2,22 @@
     <Style src="project://database/Assets/UI/UIToolkit/AuthGateScreen.uss?fileID=7433441132597879392&amp;guid=81a3f10942e1b9f44b3f8b917ad767c8&amp;type=3#AuthGateScreen"/>
     <ui:VisualElement name="root" class="authgate-root">
         <ui:VisualElement name="hero" class="hero">
-            <ui:VisualElement name="app-icon" class="app-icon">
-                <ui:VisualElement class="app-icon-img"/>
+            <ui:VisualElement name="app-icon" class="app-icon" style="background-color: rgb(255, 255, 255); width: 280px; height: 280px;">
+                <ui:VisualElement class="app-icon-img" style="background-image: url(&quot;project://database/Assets/PENS.png?fileID=21300000&amp;guid=9e32067202be73a4eb9165fc7b9f65ea&amp;type=3#PENS&quot;); height: 264px; width: 264px;"/>
             </ui:VisualElement>
-            <ui:Label name="app-name" text="MultiSetNav" class="app-name"/>
-            <ui:Label name="headline" text="Selamat datang" class="headline"/>
-            <ui:Label name="subtitle" text="Kampus dalam genggamanmu" class="subtitle"/>
+            <ui:Label name="app-name" text="MultiSetNav" class="app-name" style="font-size: 36px;"/>
+            <ui:Label name="headline" text="Selamat datang" class="headline" style="font-size: 36px; -unity-text-align: lower-center;"/>
+            <ui:Label name="subtitle" text="Kampus dalam genggamanmu" class="subtitle" style="font-size: 24px; -unity-text-align: upper-center; height: 52px;"/>
         </ui:VisualElement>
         <ui:VisualElement name="bottom-sheet" class="bottom-sheet">
-            <ui:Button name="btn-login" text="→  Masuk dengan akun" class="btn-primary" style="height: 118px; font-size: 36px;"/>
-            <ui:Button name="btn-register" text="+  Daftar akun baru" class="btn-secondary" style="height: 118px; font-size: 36px;"/>
+            <ui:Button name="btn-login" class="btn-primary btn-with-icon" style="height: 118px;">
+                <ui:VisualElement class="btn-icon icon-enter"/>
+                <ui:Label text="Masuk dengan akun" class="btn-text btn-text-primary" style="font-size: 36px;"/>
+            </ui:Button>
+            <ui:Button name="btn-register" class="btn-secondary btn-with-icon" style="height: 118px;">
+                <ui:VisualElement class="btn-icon icon-user-add"/>
+                <ui:Label text="Daftar akun baru" class="btn-text btn-text-secondary" style="font-size: 36px;"/>
+            </ui:Button>
             <ui:VisualElement name="divider-row" class="divider-row" style="-unity-background-image-tint-color: rgb(150, 160, 175);">
                 <ui:VisualElement class="divider-line" style="height: 4px;"/>
                 <ui:Label text="atau" class="divider-text" style="font-size: 36px;"/>

@@ -74,8 +74,8 @@
 }
 
 .icon-nav     { background-image: url("project://database/Assets/Icon/weui--back-filled.png"); }
-.icon-edu     { background-image: url("project://database/Assets/Icon/ic--outline-info.png"); }
-.icon-device  { background-image: url("project://database/Assets/Icon/info.png"); }
+.icon-edu     { background-image: url("project://database/Assets/Icon/icon-shield.png"); }
+.icon-device  { background-image: url("project://database/Assets/Icon/icon-user-add.png"); }
 .icon-compass { background-image: url("project://database/Assets/Icon/material-symbols--search (1).png"); }
 .icon-map     { background-image: url("project://database/Assets/Icon/Map Kampus PSDKU LAMONGAN.png"); }
 .icon-star    { background-image: url("project://database/Assets/Icon/material-symbols--search (2).png"); }

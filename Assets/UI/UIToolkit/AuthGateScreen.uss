@@ -196,6 +196,38 @@
     margin-bottom: 10px;
 }
 
+/* ─── Button Icon ─── */
+.btn-with-icon {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon {
+    width: 44px;
+    height: 44px;
+    -unity-background-scale-mode: scale-to-fit;
+    margin-right: 16px;
+    flex-shrink: 0;
+}
+
+.icon-enter {
+    background-image: url("project://database/Assets/Icon/icon-enter.png");
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+}
+
+.icon-user-add {
+    background-image: url("project://database/Assets/Icon/icon-user-add.png");
+    -unity-background-image-tint-color: rgb(26, 58, 143);
+}
+
+.btn-text {
+    -unity-font-style: bold;
+}
+
+.btn-text-primary   { color: rgb(255, 255, 255); }
+.btn-text-secondary { color: rgb(26, 58, 143); }
+
 /* ─── Home Indicator ─── */
 .home-indicator {
     width: 140px;

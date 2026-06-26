@@ -10,6 +10,9 @@ public class ScreenManager : MonoBehaviour
     [Header("UI Toolkit Documents")]
     [SerializeField] private UIDocument splashDocument;
     [SerializeField] private UIDocument authGateDocument;
+    [SerializeField] private UIDocument loginDocument;
+    [SerializeField] private UIDocument registerDocument;
+    [SerializeField] private UIDocument homeDocument;
 
     [Header("uGUI")]
     [SerializeField] private GameObject arCanvas;
@@ -36,7 +39,10 @@ public class ScreenManager : MonoBehaviour
 
         SetDoc(splashDocument,   next == Screen.Splash);
         SetDoc(authGateDocument, next == Screen.AuthGate);
-        SetCanvas(arCanvas,      next == Screen.AR || next == Screen.Home);
+        SetDoc(loginDocument,    next == Screen.Login);
+        SetDoc(registerDocument, next == Screen.Register);
+        SetDoc(homeDocument,     next == Screen.Home);
+        SetCanvas(arCanvas,      next == Screen.AR);
 
         Debug.Log($"[ScreenManager] → {next}");
     }
