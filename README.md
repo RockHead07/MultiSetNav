@@ -15,6 +15,9 @@ Proyek Unity ini berisi eksplorasi MultiSet SDK dengan sample scene (multiplayer
 ## Struktur Penting
 - `Assets/Scenes/` scene proyek (default: SampleScene)
 - `Assets/Samples/MultiSet-SDK/` sample resmi dari MultiSet SDK
+- `Assets/MapPSDKUwithCrowdDetection.unity` scene demo crowd detection + navigasi
+- `Assets/MapRSI.unity` scene demo routing berbasis kepadatan
+- `Backend/` server YOLO (Flask + Ultralytics) untuk deteksi kerumunan
 - `Packages/manifest.json` daftar paket Unity
 - `ProjectSettings/` pengaturan proyek Unity
 
@@ -108,16 +111,69 @@ Pilih GameObject yang memiliki komponen `NavigationAdapter`, lalu isi field beri
 
 ### 6. NavMeshObstacleHelper (Obstacle Dinamis)
 
-File `Assets/VoiceInput/NavMeshObstacleHelper.cs` adalah **pola/pattern** untuk obstacle dinamis yang akan diintegrasikan dengan deteksi kerumunan dari backend YOLO (`/api/human`).
+File `Assets/VoiceInput/NavMeshObstacleHelper.cs` adalah **pola/pattern** untuk obstacle dinamis yang terintegrasi dengan deteksi kerumunan dari backend YOLO (`/api/human`).
 
 Cara menggunakan:
 1. Buat GameObject baru di scene untuk merepresentasikan area kerumunan
 2. Tambahkan komponen **NavMeshObstacleHelper** (NavMeshObstacle akan otomatis ditambahkan)
 3. Script akan otomatis mengkonfigurasi carving pada NavMeshObstacle
-4. Di masa depan, data dari YOLO backend akan memanggil `SetObstacleSize()` dan `SetObstacleActive()` untuk mengupdate obstacle secara real-time
+4. Data dari YOLO backend memanggil `SetObstacleSize()` dan `SetObstacleActive()` untuk mengupdate obstacle secara real-time
 
 >[!NOTE]
 > **Catatan**: Pendekatan NavMeshObstacle carving dipilih karena lebih ringan dibanding full NavMesh rebaking, dan cukup akurat untuk bounding box kerumunan.
+
+### 7. Deteksi Keramaian (YOLO + NavMesh Dinamis)
+
+Pipeline deteksi kerumunan sudah diimplementasikan penuh. Alur data:
+
+```
+CCTV / IP Webcam (Backend/yolo_api.py, YOLOv8n)
+    ↓
+GET /api/human  (setiap 5 detik)
+    ↓
+YoloManager         → toggle NavMeshObstacle per lorong + notifikasi "Putar Balik"
+BoundingBoxOverlay  → gambar bounding box tag "Human" di layar CCTV
+```
+
+**Menjalankan backend YOLO:**
+```bash
+cd Backend
+pip install -r requirements.txt
+python yolo_api.py
+# masukkan URL kamera saat diminta (contoh: http://192.168.1.10:8080/video, atau 0 untuk webcam laptop)
+```
+Server berjalan di `http://localhost:5000/api/human`.
+
+**Setup di Unity:**
+1. Tambahkan komponen `YoloManager` ke GameObject di scene
+2. Assign `rintanganLorong1` / `rintanganLorong2` (NavMeshObstacle per lorong)
+3. Assign `visualTembok1` / `visualTembok2` (MeshRenderer tembok, opsional)
+4. Assign `uiPutarBalik` (prefab `Panel_Notif_PutarBalik`)
+5. Sesuaikan `apiUrl` ke IP laptop server YOLO
+
+### 8. Routing Berbasis Kepadatan (Density Routing)
+
+Untuk rute yang menyesuaikan tingkat keramaian secara halus (dengan hysteresis agar tidak berkedip):
+
+```
+Backend /density  →  NavigationBridge (polling 1 detik, hysteresis K=2 / M=3)
+                          ↓
+                    NavMeshController (recompute NavMeshPath)
+                          ↓
+                    ARRouteVisualizer (render garis AR + panah arah)
+                          ↓
+                    LatencyLogger (CSV: t4→t5→t6)
+```
+
+| Komponen | Fungsi |
+|---|---|
+| `NavigationBridge` | Polling `/density`, terapkan hysteresis, panggil controller |
+| `NavMeshController` | Mapping `zone_id` → `NavMeshObstacle`, hitung ulang path |
+| `ARRouteVisualizer` | Render `LineRenderer` neon + panah arah di sepanjang path |
+| `LatencyLogger` | Catat latensi ke `latency_unity.csv` di `persistentDataPath` |
+
+Scene contoh: `Assets/MapPSDKUwithCrowdDetection.unity` dan `Assets/MapRSI.unity`.
+
 
 ## Troubleshooting
 - Jika scene kosong atau error, reimport project (Right click folder proyek > Reimport All).
